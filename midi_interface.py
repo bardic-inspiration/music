@@ -4,8 +4,6 @@ import keyboard
 
 dEBUGMODE = False
 
-#Testing
-
 class MidiObject: #a class for processing midi inputs
 
     def __init__(self):
@@ -38,31 +36,27 @@ class MidiClock: #a class for the app
         print(self.midi_in.get_ports()) #prints the port info - for testing
 
     def Listen(self):
-        while True:
-            #gets input from midi_in.  returns null or a 2-tuple (int[] midi message, float delta time)
-            msg = self.midi_in.get_message()
-        
-            #if esc is pressed, returns
-            if keyboard.is_pressed("esc"):
-                print("Thank you for trying reifzmidi")
-                break
-        
-            #if there is an input, prints the deets
-            elif msg:
-                (ms, dt) = msg #the midi message
-                command = hex(ms[0]) #hexes first item, the midi command
-                if command[2] == '9': #filters for note-on
-                    if dEBUGMODE: print(f"{command} {ms[1:]}\t| dt = {dt:.2f}")
-                    print(self.testmobject.GetNote(int(ms[1]))) #ms[1] is the pitch.  ms[2] is velocity.  idk what ms[0] is lol
-                elif dEBUGMODE:
-                    print(f"debugmode {command[2]}")
-        
-            #if there is no input, waits for more
-            else:
-                time.sleep(0.01)
+        #gets input from midi_in.  returns null or a 2-tuple (int[] midi message, float delta time)
+        msg = self.midi_in.get_message()
+    
+        #if there is an input, prints the deets
+        if msg:
+            (ms, dt) = msg #the midi message
+            command = hex(ms[0]) #hexes first item, the midi command
+            if command[2] == '9': #filters for note-on
+                if dEBUGMODE: print(f"{command} {ms[1:]}\t| dt = {dt:.2f}")
+                print(self.testmobject.GetNote(int(ms[1]))) #ms[1] is the pitch.  ms[2] is velocity.  idk what ms[0] is lol
+            elif dEBUGMODE:
+                print(f"debugmode {command[2]}")
+    
+        #if there is no input, waits for more
+        else:
+            time.sleep(0.01)
     
 midiclock = MidiClock()
-midiclock.Listen()
+while keyboard.is_pressed("esc") == False:
+    midiclock.Listen()
+print("Thank you for trying reifzmidi")
 
 #ports = out.get_ports()   
 
