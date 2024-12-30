@@ -9,7 +9,7 @@ dEBUGMODE = False
     def __init__(self):
         pass"""
 
-def GetNote(input): #takes an integer and returns a string
+def GetNote(input): #takes an integer MIDI pitch and returns a string in standard musical notation.
         notelist = ["C","C#/Db","D","D#/Eb","E","F","F#/Gb","G","G#/Ab","A","A#/Bb","B"]
         
         try:
@@ -38,7 +38,7 @@ class MidiClock: #a class for the app
         #gets input from midi_in.  returns null or a 2-tuple (int[] midi message, float delta time)
         msg = self.midi_in.get_message()
     
-        #if there is an input, prints the deets
+        #if there is an input, prints the details
         if msg:
             (ms, dt) = msg #the midi message
             command = hex(ms[0]) #hexes first item, the midi command
