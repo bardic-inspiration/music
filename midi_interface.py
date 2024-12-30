@@ -9,7 +9,7 @@ dEBUGMODE = False
     def __init__(self):
         pass"""
 
-def GetNote(input): #takes an integer MIDI pitch and returns a string in standard musical notation.
+def get_note(input): #takes an integer MIDI pitch and returns a string in standard musical notation.
         notelist = ["C","C#/Db","D","D#/Eb","E","F","F#/Gb","G","G#/Ab","A","A#/Bb","B"]
         
         try:
