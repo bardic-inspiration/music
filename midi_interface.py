@@ -49,7 +49,9 @@ class MidiClock: #a class for each clock
         
         #configurations
         self.resolution = (800,800)
+        self.interval = 30 #tick time in ms
         self.speed = 1000 #max lifespan for display objects in ms
+        
         
         #structural variables
         self.midi_in = rtmidi.MidiIn() #creates a midi input class
@@ -92,7 +94,8 @@ class MidiClock: #a class for each clock
     def DrawNote(self, midiobject):      
         
         if type(midiobject) == MidiObject: 
-            intput = midiobject.pitch
+            intput = 0
+            print(str(midiobject.Pitch()))
             note = intput % 12
             octave = int((intput - (intput % 12))/12)
             color = (255,0,0)
@@ -105,7 +108,7 @@ class MidiClock: #a class for each clock
 
         else: print("Error: Expected MidiObject")
 
-    def AddMidi(self, pitch, vel):
+    def AddMidi(self, pitch, vel=100):
         self.activemidi.append(MidiObject(pitch, vel)) 
 
     def Refresh(self): #refreshes the midi clock's queue of midi objects
@@ -125,6 +128,9 @@ class MidiObject:
             return self.timeout
         return 0
 
+    def Pitch(self):
+        return self.pitch
+
 #/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
 #THE MAIN PART OF THE APPLICATION BELOW:|
 #\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
@@ -134,6 +140,7 @@ midiclock = MidiClock()
 pygame.init()
 screen = pygame.display.set_mode((800,800))
 clock = pygame.time.Clock()
+clockinterval = 30
 
 #main pygame loop
 running = True
@@ -163,7 +170,7 @@ while running:
             #except: print("Oops!")
 
     pygame.display.flip()
-    clock.tick(30)
+    clock.tick(clockinterval)
 
 print("Thank you for trying reifzmidi")
 pygame.quit()
