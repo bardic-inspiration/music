@@ -28,7 +28,7 @@ def draw_note(pitch):
     octave = int((intput - (intput % 12))/12)
     color = (255,0,0)
 
-    angle = math.radians(note * 30)
+    angle = math.radians(90 - note * 30)
     distance = octave * 50
     x = int(400 + distance * math.cos(angle))
     y = int(400 - distance * math.sin(angle))
@@ -112,19 +112,20 @@ clock = pygame.time.Clock()
 running = True
 while running:
     if keyboard.is_pressed("esc"): break
+    if keyboard.is_pressed("space"): midiclock.DefaultDisplay()
+
+    #sets up the default display
+    #midiclock.DefaultDisplay()
+
+    #listens for inputs
+    midiclock.Listen()
 
     #cycles thru the pygame event queue with conditions
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         elif event.type == MIDI_EVENT:
-            print(get_note_str(event.pitch))
-
-    #sets up the default display
-    midiclock.DefaultDisplay()
-
-    #listens for inputs
-    midiclock.Listen()
+            draw_note(event.pitch)
 
     pygame.display.flip()
     clock.tick(30)
