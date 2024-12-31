@@ -16,24 +16,6 @@ def post_midi_event(pitch): #posts a MIDI_EVENT with a pitch attribute
     event = pygame.event.Event(MIDI_EVENT, {"pitch": pitch})
     pygame.event.post(event)
 
-def draw_note(pitch):      
-    
-    try: #checks for int
-        intput = int(pitch)
-    except:
-        if dEBUGMODE: print("Input must be an integer.")
-        return (0, 0)
-    
-    note = intput % 12
-    octave = int((intput - (intput % 12))/12)
-    color = (255,0,0)
-
-    angle = math.radians(90 - note * 30)
-    distance = octave * 50
-    x = int(400 + distance * math.cos(angle))
-    y = int(400 - distance * math.sin(angle))
-    pygame.draw.circle(screen, color, (x, y), 5)
-
 #GENERAL UTILITY FUNCTIONS:
 def get_note_str(input): #takes an integer MIDI pitch and returns a string in standard musical notation.
     notelist = ["C","C#/Db","D","D#/Eb","E","F","F#/Gb","G","G#/Ab","A","A#/Bb","B"]
@@ -67,6 +49,8 @@ class MidiClock: #a class for the app
 
     def __init__(self):
         self.midi_in = rtmidi.MidiIn() #creates a midi input class
+        self.resolution = (800,800)
+        self.origin = (self.resolution[0] / 2, self.resolution[1] / 2)
         self.OpenPorts()
 
     def OpenPorts(self):
@@ -79,8 +63,8 @@ class MidiClock: #a class for the app
         for note in range(12):
                 angle = math.radians(note * 30)
                 distance = 200  # Example octave
-                x = int(400 + distance * math.cos(angle))
-                y = int(400 - distance * math.sin(angle))
+                x = int(self.origin[0] + distance * math.cos(angle))
+                y = int(self.origin[1] - distance * math.sin(angle))
                 pygame.draw.circle(screen, (255, 255, 255), (x, y), 5)
 
     def Listen(self):
@@ -98,6 +82,24 @@ class MidiClock: #a class for the app
                 print(get_note_str(pitch)) 
                 post_midi_event(pitch)
 
+    def DrawNote(self, pitch):      
+        
+        try: #checks for int
+            intput = int(pitch)
+        except:
+            print("Error: Input must be an integer.")
+            return
+        
+        note = intput % 12
+        octave = int((intput - (intput % 12))/12)
+        color = (255,0,0)
+
+        angle = math.radians(90 - note * 30)
+        distance = octave * 50
+        x = int(self.origin[0] + distance * math.cos(angle))
+        y = int(self.origin[1] - distance * math.sin(angle))
+        pygame.draw.circle(screen, color, (x, y), 5)
+
 #/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
 #THE MAIN PART OF THE APPLICATION BELOW:|
 #\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
@@ -110,9 +112,14 @@ clock = pygame.time.Clock()
 
 #main pygame loop
 running = True
+reset = True
+
 while running:
     if keyboard.is_pressed("esc"): break
-    if keyboard.is_pressed("space"): midiclock.DefaultDisplay()
+    if keyboard.is_pressed("space"): reset = True
+    if reset: 
+        midiclock.DefaultDisplay()
+        reset = False
 
     #sets up the default display
     #midiclock.DefaultDisplay()
@@ -125,7 +132,7 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         elif event.type == MIDI_EVENT:
-            draw_note(event.pitch)
+            midiclock.DrawNote(event.pitch)
 
     pygame.display.flip()
     clock.tick(30)
