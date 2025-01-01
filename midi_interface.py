@@ -93,23 +93,24 @@ class MidiClock: #a class for each clock
 
     def DrawNote(self, midiobject):      
         
-        if type(midiobject) == MidiObject: 
-            intput = 0
-            print(str(midiobject.Pitch()))
-            note = intput % 12
-            octave = int((intput - (intput % 12))/12)
-            color = (255,0,0)
+        intput = int(midiobject[0])
+        if dEBUGMODE: print(str(midiobject[0]))
+        note = intput % 12
+        octave = int((intput - (intput % 12))/12)
+        color = (255,0,0)
 
-            angle = math.radians(90 - note * 30)
-            distance = octave * 50
-            x = int(self.origin[0] + distance * math.cos(angle))
-            y = int(self.origin[1] - distance * math.sin(angle))
-            pygame.draw.circle(screen, color, (x, y), 5)
+        angle = math.radians(90 - note * 30)
+        distance = octave * 50
+        x = int(self.origin[0] + distance * math.cos(angle))
+        y = int(self.origin[1] - distance * math.sin(angle))
+        pygame.draw.circle(screen, color, (x, y), 5)
 
-        else: print("Error: Expected MidiObject")
+        #else: print("Error: Expected MidiObject")
 
     def AddMidi(self, pitch, vel=100):
-        self.activemidi.append(MidiObject(pitch, vel)) 
+        timeout = vel * 128 / self.speed
+        midi = (pitch, timeout)
+        self.activemidi.append(midi) 
 
     def Refresh(self): #refreshes the midi clock's queue of midi objects
         for midiobject in self.activemidi:
@@ -117,7 +118,7 @@ class MidiClock: #a class for each clock
                 self.activemidi.remove(midiobject)
             else: self.DrawNote(midiobject) #draws the midi object
 
-class MidiObject:
+"""class MidiObject:
     def __init__(self, pitch, vel):
         self.pitch = pitch
         self.timeout = vel * 128 / midiclock.speed
@@ -129,7 +130,7 @@ class MidiObject:
         return 0
 
     def Pitch(self):
-        return self.pitch
+        return self.pitch"""
 
 #/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
 #THE MAIN PART OF THE APPLICATION BELOW:|
@@ -140,25 +141,27 @@ midiclock = MidiClock()
 pygame.init()
 screen = pygame.display.set_mode((800,800))
 clock = pygame.time.Clock()
-clockinterval = 30
+interval = 30
 
 #main pygame loop
 running = True
 reset = True
 
 while running:
+    
+    #keyboard commands
     if keyboard.is_pressed("esc"): break
     if keyboard.is_pressed("space"): reset = True
     if reset: 
         midiclock.ResetDisplay()
+        #midiclock.ClearQueue()  #clears the queue
         reset = False
 
     #sets up the default display
     #midiclock.DefaultDisplay()
 
-    #listens for inputs
-    midiclock.Listen()
-    midiclock.Refresh()
+    midiclock.Listen() #listens for inputs
+    midiclock.Refresh() #refreshes the display
 
     #cycles thru the pygame event queue with conditions
     for event in pygame.event.get():
@@ -166,21 +169,11 @@ while running:
             running = False
         elif event.type == MIDI_EVENT:
             #try: 
-            midiclock.AddMidi(MidiObject(event.pitch, event.vel))
+            midiclock.AddMidi(event.pitch, event.vel)
             #except: print("Oops!")
 
     pygame.display.flip()
-    clock.tick(clockinterval)
+    clock.tick(interval)
 
 print("Thank you for trying reifzmidi")
 pygame.quit()
-
-#ports = out.get_ports()   
-
-#[print(x) for x in ports]
-
-"""# List all available MIDI input ports
-input_ports = mido.get_input_names()
-print("Available MIDI input ports:")
-for i, port in enumerate(input_ports):
-    print(f"{i}: {port}")"""
