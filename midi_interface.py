@@ -3,6 +3,7 @@ import rtmidi
 import pygame
 import math
 import keyboard
+import array as arr
 
 dEBUGMODE = True
 
@@ -91,16 +92,16 @@ class MidiClock: #a class for each clock
                 print(get_note_str(pitch))
                 post_midi_event(pitch, vel) #pygame posts a midi event
 
-    def DrawNote(self, midiobject):      
+    def Draw(self, midi):      
         
-        intput = int(midiobject[0])
-        if dEBUGMODE: print(str(midiobject[0]))
-        note = intput % 12
-        octave = int((intput - (intput % 12))/12)
+        pitch = midi[0]
+        if dEBUGMODE: print(str(pitch))
+        note = pitch % 12
+        octave = int((pitch - (pitch % 12))/12)
         color = (255,0,0)
 
         angle = math.radians(90 - note * 30)
-        distance = octave * 50
+        distance = min(self.resolution) / 2 - octave * 50  #the distance is half the smaller of the two window dimensions
         x = int(self.origin[0] + distance * math.cos(angle))
         y = int(self.origin[1] - distance * math.sin(angle))
         pygame.draw.circle(screen, color, (x, y), 5)
@@ -108,15 +109,18 @@ class MidiClock: #a class for each clock
         #else: print("Error: Expected MidiObject")
 
     def AddMidi(self, pitch, vel=100):
-        timeout = vel * 128 / self.speed
-        midi = (pitch, timeout)
+        timeout = vel / 128 * self.speed
+        midi = [pitch, timeout]
         self.activemidi.append(midi) 
 
-    def Refresh(self): #refreshes the midi clock's queue of midi objects
-        for midiobject in self.activemidi:
-            if midiobject.Decay() == 0: #purges dead midi objects
-                self.activemidi.remove(midiobject)
-            else: self.DrawNote(midiobject) #draws the midi object
+    def Refresh(self): #purges the queue, 
+        for i in range(len(self.activemidi)):
+            self.activemidi[i][1] -= interval
+            if self.activemidi[i][1] <= 0: #checks if midi timeout has reached 0
+                self.activemidi.pop(i)
+            else: 
+                self.Draw(self.activemidi[i]) #draws the midi on the screen
+                
 
 """class MidiObject:
     def __init__(self, pitch, vel):
@@ -157,11 +161,7 @@ while running:
         #midiclock.ClearQueue()  #clears the queue
         reset = False
 
-    #sets up the default display
-    #midiclock.DefaultDisplay()
-
     midiclock.Listen() #listens for inputs
-    midiclock.Refresh() #refreshes the display
 
     #cycles thru the pygame event queue with conditions
     for event in pygame.event.get():
@@ -171,6 +171,8 @@ while running:
             #try: 
             midiclock.AddMidi(event.pitch, event.vel)
             #except: print("Oops!")
+
+    midiclock.Refresh() #refreshes the display
 
     pygame.display.flip()
     clock.tick(interval)
