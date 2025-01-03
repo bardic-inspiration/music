@@ -5,13 +5,13 @@ import math
 import keyboard
 import array as arr
 
-dEBUGMODE = True
+dEBUGMODE = False
 
 #PYGAME EVENTS
 MIDI_EVENT = pygame.USEREVENT + 1
 
 #PYGAME FUNCTIONS:
-def post_midi_event(pitch, vel): #posts a MIDI_EVENT with pitch and velocity
+def post_midi_event(pitch=0, vel=100): #posts a MIDI_EVENT with pitch and velocity
     event = pygame.event.Event(MIDI_EVENT, {"pitch": pitch, "vel": vel})
     pygame.event.post(event)
 
@@ -42,6 +42,15 @@ def get_note(input): #takes int MIDI pitch and returns the note and octave as a 
     octave = int((intput - (intput % 12))/12)
 
     return (note, octave)
+
+def text_input(): #takes a string and feeds it to the app as MIDI for testing
+    userinput = input("Input an integer.")
+    try:
+        i = int(userinput) 
+    except:
+        print("Error: Expected integer.")
+        return 0
+    return i
 
 #OBJECTS:
 class MidiClock: #a class for each clock
@@ -113,12 +122,13 @@ class MidiClock: #a class for each clock
         midi = [pitch, timeout]
         self.activemidi.append(midi) 
 
-    def Refresh(self): #purges the queue, 
-        for i in range(len(self.activemidi)):
+    def Refresh(self): #purges the queue, resets the display, redraws all objects 
+        for i in range(len(self.activemidi) -1, -1, -1):
             self.activemidi[i][1] -= interval
             if self.activemidi[i][1] <= 0: #checks if midi timeout has reached 0
-                self.activemidi.pop(i)
-            else: 
+                self.activemidi.pop(i) #removes expired midi
+            else:
+                if dEBUGMODE: print(str(self.activemidi[i]))
                 self.Draw(self.activemidi[i]) #draws the midi on the screen
                 
 
@@ -147,19 +157,18 @@ screen = pygame.display.set_mode((800,800))
 clock = pygame.time.Clock()
 interval = 30
 
-#main pygame loop
+#switches
 running = True
 reset = True
 
+#primary loop
 while running:
     
     #keyboard commands
     if keyboard.is_pressed("esc"): break
-    if keyboard.is_pressed("space"): reset = True
-    if reset: 
-        midiclock.ResetDisplay()
-        #midiclock.ClearQueue()  #clears the queue
-        reset = False
+    #if keyboard.is_pressed("space"): reset = True
+    
+    midiclock.ResetDisplay()
 
     midiclock.Listen() #listens for inputs
 
