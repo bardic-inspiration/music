@@ -47,6 +47,7 @@ def text_input(): #takes a string and feeds it to the app as MIDI for testing
     userinput = input("Input an integer.")
     try:
         i = int(userinput) 
+        print(f"Integer received: {i}")
     except:
         print("Error: Expected integer.")
         return 0
@@ -164,23 +165,41 @@ reset = True
 #primary loop
 while running:
     
-    #keyboard commands
+    """#keyboard commands
     if keyboard.is_pressed("esc"): break
-    #if keyboard.is_pressed("space"): reset = True
+    if keyboard.is_pressed("q"): post_midi_event(text_input(), 100)"""
     
-    midiclock.ResetDisplay()
-
     midiclock.Listen() #listens for inputs
 
-    #cycles thru the pygame event queue with conditions
+    # Process all Pygame events
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:  # Quit event
+            running = False
+
+        # Handle keypress events
+        elif event.type == pygame.KEYDOWN:  # Key is pressed down
+            if event.key == pygame.K_ESCAPE:  # Escape key
+                running = False
+            elif event.key == pygame.K_q:  # Q key
+                post_midi_event(text_input(), 100)
+
+        # Handle custom MIDI events
+        elif event.type == MIDI_EVENT:
+            try:
+                midiclock.AddMidi(event.pitch, event.vel)
+            except Exception as e:
+                print(f"Error handling MIDI_EVENT: {e}")
+
+    """#cycles thru the pygame event queue with conditions
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         elif event.type == MIDI_EVENT:
             #try: 
             midiclock.AddMidi(event.pitch, event.vel)
-            #except: print("Oops!")
+            #except: print("Oops!")"""
 
+    midiclock.ResetDisplay() #resets the display
     midiclock.Refresh() #refreshes the display
 
     pygame.display.flip()
