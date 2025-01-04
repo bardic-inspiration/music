@@ -12,8 +12,12 @@ MIDI_PRESS = pygame.USEREVENT + 1
 MIDI_RELEASE = pygame.USEREVENT + 2
 
 #PYGAME FUNCTIONS:
-def post_midi_event(pitch=0, vel=100): #posts a MIDI_PRESS with pitch and velocity
+def post_midi_press(pitch=0, vel=100): #posts a MIDI_PRESS with pitch and velocity
     event = pygame.event.Event(MIDI_PRESS, {"pitch": pitch, "vel": vel})
+    pygame.event.post(event)
+
+def post_midi_release(pitch=0): #post a MIDI_RELEASE with pitch
+    event = pygame.event.Event(MIDI_RELEASE, {"pitch": pitch})
     pygame.event.post(event)
 
 #UTILITIES:
@@ -49,7 +53,7 @@ def text_input(): #takes a string and feeds it to the app as MIDI for testing
     try:
         i = int(userinput) 
         print(f"Integer received: {i}")
-        post_midi_event(i, 100)
+        post_midi_press(i, 100)
     except:
         print("Error: Expected integer.")
         return 0
@@ -98,10 +102,12 @@ class MidiClock: #a class for each clock
             pitch = int(ms[1]) #ms[1] is pitch of midi signal 
             vel = int(ms[2]) #ms[2] is velocity of midi signal
 
-            if command[2] == '9': #interprets the midi command, filters for note-on
+            if command[2] == '9': #note-on
                 if dEBUGMODE: print(f"{command} {ms[1:]}\t| dt = {dt:.2f}")
                 print(get_note_str(pitch))
-                post_midi_event(pitch, vel) #pygame posts a midi event
+                post_midi_press(pitch, vel) #pygame posts a midi event
+            elif command[2] == '8': #note-off
+                post_midi_release(pitch)
 
     def Draw(self, midi):      
         
@@ -121,12 +127,12 @@ class MidiClock: #a class for each clock
 
     def AddMidi(self, pitch, vel=100):
         timeout = vel / 128 * self.speed
-        midi = [pitch, timeout]
+        midi = [pitch, timeout, True]
         self.activemidi.append(midi) 
 
     def Refresh(self): #purges the queue, resets the display, redraws all objects 
         for i in range(len(self.activemidi) -1, -1, -1):
-            self.activemidi[i][1] -= interval
+            if not self.activemidi[i][2]: self.activemidi[i][1] -= interval
             if self.activemidi[i][1] <= 0: #checks if midi timeout has reached 0
                 self.activemidi.pop(i) #removes expired midi
             else:
@@ -134,9 +140,11 @@ class MidiClock: #a class for each clock
                 self.Draw(self.activemidi[i]) #draws the midi on the screen
                 
 
-"""class MidiObject:
+class MidiObject:
     def __init__(self, pitch, vel):
         self.pitch = pitch
+        self.vel = vel
+        self.ispressed = True
         self.timeout = vel * 128 / midiclock.speed
 
     def Decay(self):
@@ -146,7 +154,7 @@ class MidiClock: #a class for each clock
         return 0
 
     def Pitch(self):
-        return self.pitch"""
+        return self.pitch
 
 #/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
 #THE MAIN PART OF THE APPLICATION BELOW:|
