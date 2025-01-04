@@ -8,11 +8,12 @@ import array as arr
 dEBUGMODE = False
 
 #PYGAME EVENTS
-MIDI_EVENT = pygame.USEREVENT + 1
+MIDI_PRESS = pygame.USEREVENT + 1
+MIDI_RELEASE = pygame.USEREVENT + 2
 
 #PYGAME FUNCTIONS:
-def post_midi_event(pitch=0, vel=100): #posts a MIDI_EVENT with pitch and velocity
-    event = pygame.event.Event(MIDI_EVENT, {"pitch": pitch, "vel": vel})
+def post_midi_event(pitch=0, vel=100): #posts a MIDI_PRESS with pitch and velocity
+    event = pygame.event.Event(MIDI_PRESS, {"pitch": pitch, "vel": vel})
     pygame.event.post(event)
 
 #UTILITIES:
@@ -165,10 +166,6 @@ reset = True
 #primary loop
 while running:
     
-    """#keyboard commands
-    if keyboard.is_pressed("esc"): break
-    if keyboard.is_pressed("q"): post_midi_event(text_input(), 100)"""
-    
     midiclock.Listen() #listens for inputs
 
     # Process all Pygame events
@@ -184,20 +181,11 @@ while running:
                 text_input()
 
         # Handle custom MIDI events
-        elif event.type == MIDI_EVENT:
+        elif event.type == MIDI_PRESS:
             try:
                 midiclock.AddMidi(event.pitch, event.vel)
             except Exception as e:
-                print(f"Error handling MIDI_EVENT: {e}")
-
-    """#cycles thru the pygame event queue with conditions
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        elif event.type == MIDI_EVENT:
-            #try: 
-            midiclock.AddMidi(event.pitch, event.vel)
-            #except: print("Oops!")"""
+                print(f"Error handling MIDI_PRESS: {e}")
 
     midiclock.ResetDisplay() #resets the display
     midiclock.Refresh() #refreshes the display
