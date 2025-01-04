@@ -48,10 +48,10 @@ def text_input(): #takes a string and feeds it to the app as MIDI for testing
     try:
         i = int(userinput) 
         print(f"Integer received: {i}")
+        post_midi_event(i, 100)
     except:
         print("Error: Expected integer.")
         return 0
-    return i
 
 #OBJECTS:
 class MidiClock: #a class for each clock
@@ -181,7 +181,7 @@ while running:
             if event.key == pygame.K_ESCAPE:  # Escape key
                 running = False
             elif event.key == pygame.K_q:  # Q key
-                post_midi_event(text_input(), 100)
+                text_input()
 
         # Handle custom MIDI events
         elif event.type == MIDI_EVENT:
