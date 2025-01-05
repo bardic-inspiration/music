@@ -65,13 +65,12 @@ class MidiClock: #a class for each clock
 
     def __init__(self):
         
-        #configurations
+        #config vars
         self.resolution = (800,800)
         self.interval = 30 #tick time in ms
         self.speed = 1000 #max lifespan for display objects in ms
         
-        
-        #structural variables
+        #structural vars
         self.midi_in = rtmidi.MidiIn() #creates a midi input class
         self.origin = (self.resolution[0] / 2, self.resolution[1] / 2)
         self.activemidi = []
@@ -79,21 +78,12 @@ class MidiClock: #a class for each clock
         #initialization calls
         self.OpenPorts()
 
+#midi in methods
     def OpenPorts(self):
         self.midi_in.open_port(0) #opens port 0 for midi input (assumes 0 is available)
         print(self.midi_in.get_ports()) #prints the port info - for testing
-
-    def ResetDisplay(self): #initializes the default empty display
-        screen.fill((0,0,0))
-        
-        for note in range(12):
-                angle = math.radians(note * 30)
-                distance = 200  # Example octave
-                x = int(self.origin[0] + distance * math.cos(angle))
-                y = int(self.origin[1] - distance * math.sin(angle))
-                pygame.draw.circle(screen, (255, 255, 255), (x, y), 5)
-
     def Listen(self):
+    
         #gets input from midi_in.  returns null or a 2-tuple (int[] midi message, float delta time)
         msg = self.midi_in.get_message()
     
@@ -111,6 +101,16 @@ class MidiClock: #a class for each clock
             elif command[2] == '8': #note-off
                 post_midi_release(pitch)
 
+#display methods
+    def ResetDisplay(self): #initializes the default empty display
+        screen.fill((0,0,0))
+        
+        for note in range(12):
+                angle = math.radians(note * 30)
+                distance = 200  # Example octave
+                x = int(self.origin[0] + distance * math.cos(angle))
+                y = int(self.origin[1] - distance * math.sin(angle))
+                pygame.draw.circle(screen, (255, 255, 255), (x, y), 5)
     def Draw(self, midi, size=1, decay=1, color='FFFFFF'):   
         
         #parameters
@@ -132,18 +132,7 @@ class MidiClock: #a class for each clock
 
         #else: print("Error: Expected MidiObject")
 
-    def AddMidi(self, pitch, vel=100):
-        timeout = vel / 128 * self.speed
-        midi = [pitch, timeout, True]
-        self.activemidi.append(midi) 
-
-    def DelMidi(self, pitch):
-        for i in range(len(self.activemidi)): #iterates thru queue and makes first matching midi component eligible for timeout
-            if self.activemidi[i][2] and self.activemidi[i][0] == pitch:
-                self.activemidi[i][2] = False
-                break
-
-
+#midi queue methods
     def Refresh(self): #purges the queue, resets the display, redraws all objects 
         for i in range(len(self.activemidi)-1, -1, -1): #iterates in reverse
             if not self.activemidi[i][2]: self.activemidi[i][1] -= interval
@@ -152,7 +141,16 @@ class MidiClock: #a class for each clock
             else:
                 if dEBUGMODE: print(str(self.activemidi[i]))
                 self.Draw(self.activemidi[i]) #draws the midi on the screen
-                
+    def AddMidi(self, pitch, vel=100):
+        timeout = vel / 128 * self.speed
+        midi = [pitch, timeout, True]
+        self.activemidi.append(midi) 
+    def DelMidi(self, pitch):
+        for i in range(len(self.activemidi)): #iterates thru queue and makes first matching midi component eligible for timeout
+            if self.activemidi[i][2] and self.activemidi[i][0] == pitch:
+                self.activemidi[i][2] = False
+                break
+               
 
 class Midi:
     def __init__(self, pitch, vel, size):
