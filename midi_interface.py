@@ -130,8 +130,15 @@ class MidiClock: #a class for each clock
         midi = [pitch, timeout, True]
         self.activemidi.append(midi) 
 
+    def DelMidi(self, pitch):
+        for i in range(len(self.activemidi)): #iterates thru queue and makes first matching midi component eligible for timeout
+            if self.activemidi[i][2] and self.activemidi[i][0] == pitch:
+                self.activemidi[i][2] = False
+                break
+
+
     def Refresh(self): #purges the queue, resets the display, redraws all objects 
-        for i in range(len(self.activemidi) -1, -1, -1):
+        for i in range(len(self.activemidi)-1, -1, -1): #iterates in reverse
             if not self.activemidi[i][2]: self.activemidi[i][1] -= interval
             if self.activemidi[i][1] <= 0: #checks if midi timeout has reached 0
                 self.activemidi.pop(i) #removes expired midi
@@ -140,7 +147,7 @@ class MidiClock: #a class for each clock
                 self.Draw(self.activemidi[i]) #draws the midi on the screen
                 
 
-class MidiObject:
+class Midi:
     def __init__(self, pitch, vel):
         self.pitch = pitch
         self.vel = vel
@@ -153,8 +160,7 @@ class MidiObject:
             return self.timeout
         return 0
 
-    def Pitch(self):
-        return self.pitch
+    
 
 #/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
 #THE MAIN PART OF THE APPLICATION BELOW:|
@@ -194,6 +200,11 @@ while running:
                 midiclock.AddMidi(event.pitch, event.vel)
             except Exception as e:
                 print(f"Error handling MIDI_PRESS: {e}")
+        elif event.type == MIDI_RELEASE:
+            try:
+                midiclock.DelMidi(event.pitch)
+            except Exception as e:
+                print(f"Error handling MIDI_RELEASE: {e}")
 
     midiclock.ResetDisplay() #resets the display
     midiclock.Refresh() #refreshes the display
