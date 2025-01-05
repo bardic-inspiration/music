@@ -47,6 +47,8 @@ def get_note(input): #takes int MIDI pitch and returns the note and octave as a 
     octave = int((intput - (intput % 12))/12)
 
     return (note, octave)
+#def rgb_int(color): #takes str rgb hex returns int (r,g,b)
+    
 
 def text_input(): #takes a string and feeds it to the app as MIDI for testing
     userinput = input("Input an integer.")
@@ -109,19 +111,24 @@ class MidiClock: #a class for each clock
             elif command[2] == '8': #note-off
                 post_midi_release(pitch)
 
-    def Draw(self, midi):      
+    def Draw(self, midi, size=1, decay=1, color='FFFFFF'):   
         
+        #parameters
+        radius = size * int(min(self.resolution)/20)
+        delta = decay * self.interval * midi[1]
+
         pitch = midi[0]
         if dEBUGMODE: print(str(pitch))
         note = pitch % 12
         octave = int((pitch - (pitch % 12))/12)
+
         color = (255,0,0)
 
         angle = math.radians(90 - note * 30)
         distance = min(self.resolution) / 2 - octave * 50  #the distance is half the smaller of the two window dimensions
         x = int(self.origin[0] + distance * math.cos(angle))
         y = int(self.origin[1] - distance * math.sin(angle))
-        pygame.draw.circle(screen, color, (x, y), 5)
+        pygame.draw.circle(screen, color, (x, y), radius-delta)
 
         #else: print("Error: Expected MidiObject")
 
@@ -148,9 +155,10 @@ class MidiClock: #a class for each clock
                 
 
 class Midi:
-    def __init__(self, pitch, vel):
+    def __init__(self, pitch, vel, size):
         self.pitch = pitch
         self.vel = vel
+        self.size = size
         self.ispressed = True
         self.timeout = vel * 128 / midiclock.speed
 
