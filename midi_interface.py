@@ -1,9 +1,7 @@
-import time
 import rtmidi
 import pygame
 import math
-import keyboard
-import array as arr
+from colorutils import Color
 
 dEBUGMODE = False
 
@@ -62,7 +60,8 @@ class MidiClock:
 
     def __init__(self):
         
-        #config vars
+        #configurable vars
+        self.name = "Default Clock"
         self.resolution = (800,800)
         self.interval = 30 #tick time in ms
         self.speed = 1000 #max lifespan for display objects in ms
@@ -74,6 +73,23 @@ class MidiClock:
 
         #initialization calls
         self.OpenPorts()
+
+#config methods
+    def SetSpeed(self, speed):
+        try: 
+            int(speed)
+            self.speed = speed
+            print(f"{self.name} speed set to {speed}")
+        except:
+            print("Error: Expected integer.")
+    def SetResolution(self, x, y):
+        try:
+            int(x)
+            int(y)
+            self.resolution = (x,y)
+        except:
+            print("Error: Expected integer.")
+
 
 #midi in methods
     def OpenPorts(self):
@@ -108,7 +124,7 @@ class MidiClock:
                 x = int(self.origin[0] + distance * math.cos(angle))
                 y = int(self.origin[1] - distance * math.sin(angle))
                 pygame.draw.circle(screen, (255, 255, 255), (x, y), 5)
-    def Draw(self, midi, sizeratio=0.1, color='FFFFFF'):   
+    def Draw(self, midi, sizeratio=0.1):   
         
         pitch = midi[0]
         scale = midi[1] / self.speed
