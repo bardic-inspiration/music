@@ -15,7 +15,6 @@ MIDI_RELEASE = pygame.USEREVENT + 2
 def post_midi_press(pitch=0, vel=100): #posts a MIDI_PRESS with pitch and velocity
     event = pygame.event.Event(MIDI_PRESS, {"pitch": pitch, "vel": vel})
     pygame.event.post(event)
-
 def post_midi_release(pitch=0): #post a MIDI_RELEASE with pitch
     event = pygame.event.Event(MIDI_RELEASE, {"pitch": pitch})
     pygame.event.post(event)
@@ -48,8 +47,6 @@ def get_note(input): #takes int MIDI pitch and returns the note and octave as a 
 
     return (note, octave)
 #def rgb_int(color): #takes str rgb hex returns int (r,g,b)
-    
-
 def text_input(): #takes a string and feeds it to the app as MIDI for testing
     userinput = input("Input an integer.")
     try:
@@ -61,7 +58,7 @@ def text_input(): #takes a string and feeds it to the app as MIDI for testing
         return 0
 
 #OBJECTS:
-class MidiClock: #a class for each clock
+class MidiClock:
 
     def __init__(self):
         
@@ -107,28 +104,31 @@ class MidiClock: #a class for each clock
         
         for note in range(12):
                 angle = math.radians(note * 30)
-                distance = 200  # Example octave
+                distance = min(self.resolution) / 4  # Example octave
                 x = int(self.origin[0] + distance * math.cos(angle))
                 y = int(self.origin[1] - distance * math.sin(angle))
                 pygame.draw.circle(screen, (255, 255, 255), (x, y), 5)
-    def Draw(self, midi, size=1, decay=1, color='FFFFFF'):   
+    def Draw(self, midi, sizeratio=0.1, color='FFFFFF'):   
         
-        #parameters
-        radius = size * int(min(self.resolution)/20)
-        delta = decay * self.interval * midi[1]
-
         pitch = midi[0]
+        scale = midi[1] / self.speed
+        ispressed = midi[2]
+
+        #parameters
+        size = sizeratio * int(min(self.resolution)) * scale
+
         if dEBUGMODE: print(str(pitch))
         note = pitch % 12
         octave = int((pitch - (pitch % 12))/12)
 
-        color = (255,0,0)
+        if ispressed: color = (255,255,255)
+        else: color = (0,0,255)
 
         angle = math.radians(90 - note * 30)
         distance = min(self.resolution) / 2 - octave * 50  #the distance is half the smaller of the two window dimensions
         x = int(self.origin[0] + distance * math.cos(angle))
         y = int(self.origin[1] - distance * math.sin(angle))
-        pygame.draw.circle(screen, color, (x, y), radius-delta)
+        pygame.draw.circle(screen, color, (x, y), size)
 
         #else: print("Error: Expected MidiObject")
 
@@ -150,8 +150,6 @@ class MidiClock: #a class for each clock
             if self.activemidi[i][2] and self.activemidi[i][0] == pitch:
                 self.activemidi[i][2] = False
                 break
-               
-
 class Midi:
     def __init__(self, pitch, vel, size):
         self.pitch = pitch
@@ -166,8 +164,6 @@ class Midi:
             return self.timeout
         return 0
 
-    
-
 #/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
 #THE MAIN PART OF THE APPLICATION BELOW:|
 #\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
@@ -175,7 +171,7 @@ class Midi:
 #initializes pygame and sets screen resolution
 midiclock = MidiClock()
 pygame.init()
-screen = pygame.display.set_mode((800,800))
+screen = pygame.display.set_mode(midiclock.resolution)
 clock = pygame.time.Clock()
 interval = 30
 
@@ -218,5 +214,5 @@ while running:
     pygame.display.flip()
     clock.tick(interval)
 
-print("Thank you for trying reifzmidi")
+print("Thank you for trying MIDI DROPS")
 pygame.quit()
