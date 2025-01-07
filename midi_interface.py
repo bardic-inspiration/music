@@ -44,16 +44,29 @@ def get_note(input): #takes int MIDI pitch and returns the note and octave as a 
     octave = int((intput - (intput % 12))/12)
 
     return (note, octave)
-#def rgb_int(color): #takes str rgb hex returns int (r,g,b)
 def text_input(): #takes a string and feeds it to the app as MIDI for testing
-    userinput = input("Input an integer.")
-    try:
-        i = int(userinput) 
-        print(f"Integer received: {i}")
-        post_midi_press(i, 100)
-    except:
-        print("Error: Expected integer.")
-        return 0
+    userinput = input("Input a command string: -midi -color")
+    
+    if userinput == "-midi"
+        m = input("Input an integer pitch.") 
+        try:
+            i = int(userinput) 
+            print(f"Integer received: {i}")
+            post_midi_press(i, 100)
+        except:
+            print("Error: Expected integer.")
+            return
+    elif userinput == "-colormode":
+        c = input("Input an integer to change the color mode. 0 Default 1 Dynamic 2 Custom")
+        try: 
+            color = Color(c)
+            #midiclock.colormode = 
+        except: 
+            print("Error: Invalid color format.")
+            return
+        
+
+    
 
 #OBJECTS:
 class MidiClock:
