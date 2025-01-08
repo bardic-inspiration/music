@@ -160,6 +160,20 @@ class MidiClock:
         pygame.draw.circle(screen, color, (x, y), size)
 
         #else: print("Error: Expected MidiObject")
+    def DrawChord(self, midiobjects, mode): #draws a polygon given multiple midi note inputs
+        a = 0
+        coords = []
+
+        try: 
+            a = len(midiobjects)
+            if a <= 1:
+                print("Error: List too short.")
+        except:
+            print("Error: Expected list.")
+        
+        for i in range(len(midiobjects)):
+            #coords.append(midiobjects[i].GetCoords())    --NEED TO BUILD GETCOORDS()
+
 
 #midi queue methods
     def Refresh(self): #purges the queue, resets the display, redraws all objects 
