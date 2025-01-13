@@ -2,6 +2,7 @@ import rtmidi
 import pygame
 import math
 from colorutils import Color
+from itertools import combinations
 
 dEBUGMODE = False
 
@@ -173,8 +174,7 @@ class MidiClock:
         
         for i in range(len(midiobjects)):
             #coords.append(midiobjects[i].GetCoords())    --NEED TO BUILD GETCOORDS()
-
-
+        
 #midi queue methods
     def Refresh(self): #purges the queue, resets the display, redraws all objects 
         for i in range(len(self.activemidi)-1, -1, -1): #iterates in reverse
@@ -193,7 +193,18 @@ class MidiClock:
             if self.activemidi[i][2] and self.activemidi[i][0] == pitch:
                 self.activemidi[i][2] = False
                 break
+    def AnalyzeQueue(self) #analyzes the notes in the queue and returns any pattern matches
+
+        #creates a set out of the midi queue with normalized pitches, deduplicated
+        normalized_pitches = {note.pitch % 12 for note in self.activemidi}
+
+        pitch_pairs = combinations(normalized_pitches, 2)
+
+
+
+
 class Midi:
+    
     def __init__(self, pitch, vel, size):
         self.pitch = pitch
         self.vel = vel
