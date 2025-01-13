@@ -48,7 +48,7 @@ def get_note(input): #takes int MIDI pitch and returns the note and octave as a 
 def text_input(): #takes a string and feeds it to the app as MIDI for testing
     userinput = input("Input a command string: -midi -color")
     
-    if userinput == "-midi"
+    if userinput == "-midi":
         m = input("Input an integer pitch.") 
         try:
             i = int(userinput) 
@@ -163,7 +163,7 @@ class MidiClock:
         #else: print("Error: Expected MidiObject")
     def DrawChord(self, midiobjects, mode): #draws a polygon given multiple midi note inputs
         a = 0
-        coords = []
+        #coords = []
 
         try: 
             a = len(midiobjects)
@@ -172,8 +172,8 @@ class MidiClock:
         except:
             print("Error: Expected list.")
         
-        for i in range(len(midiobjects)):
-            #coords.append(midiobjects[i].GetCoords())    --NEED TO BUILD GETCOORDS()
+        #for i in range(len(midiobjects)):
+        #    coords.append(midiobjects[i].GetCoords())    ##NEED TO BUILD GETCOORDS()
         
 #midi queue methods
     def Refresh(self): #purges the queue, resets the display, redraws all objects 
@@ -193,7 +193,7 @@ class MidiClock:
             if self.activemidi[i][2] and self.activemidi[i][0] == pitch:
                 self.activemidi[i][2] = False
                 break
-    def AnalyzeQueue(self) #analyzes the notes in the queue and returns any pattern matches
+    def AnalyzeQueue(self): #analyzes the notes in the queue and returns any defined pattern matches
 
         #creates a set out of the midi queue with normalized pitches, deduplicated
         normalized_pitches = {note.pitch % 12 for note in self.activemidi}
@@ -212,11 +212,15 @@ class MidiClock:
         major_chord = [4, 3]
         minor_chord = [3, 4]
 
+        #sorts the list of intervals in ascending order
         intervals.sort()
+
+        #checks the list of intervals for major and minor chords  (what if there are both?)
         if major_chord == intervals[:len(major_chord)]:
             return "Major"
         elif minor_chord == intervals[:len(major_chord)]:
             return "Minor"
+        return "None"
 
 
 
