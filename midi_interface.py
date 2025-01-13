@@ -198,7 +198,28 @@ class MidiClock:
         #creates a set out of the midi queue with normalized pitches, deduplicated
         normalized_pitches = {note.pitch % 12 for note in self.activemidi}
 
+        #creates a list of tuples of 2 note combinations
         pitch_pairs = combinations(normalized_pitches, 2)
+
+        intervals = [] #a list of intervals in the queue
+        for a, b in pitch_pairs:
+            interval = (b - a) % 12 #the difference in pitch of the pair of notes
+            intervals.append(interval) #adds the interval to the list
+            interval_reverse = (a - b) % 12 #includes the reverse direction for analysis
+            intervals.append(interval_reverse)
+
+        #default patterns for major and minor chords... do we want to store all chord patterns in a list?
+        major_chord = [4, 3]
+        minor_chord = [3, 4]
+
+        intervals.sort()
+        if major_chord == intervals[:len(major_chord)]:
+            return "Major"
+        elif minor_chord == intervals[:len(major_chord)]:
+            return "Minor"
+
+
+
 
 
 
