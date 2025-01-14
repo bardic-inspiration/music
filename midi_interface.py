@@ -138,14 +138,14 @@ class MidiClock:
                 x = int(self.origin[0] + distance * math.cos(angle))
                 y = int(self.origin[1] - distance * math.sin(angle))
                 pygame.draw.circle(screen, (255, 255, 255), (x, y), 5)
-    def Draw(self, midi, sizeratio=0.1):   
+    def Draw(self, midi):   
         
-        pitch = midi[0]
-        scale = midi[1] / self.speed
-        ispressed = midi[2]
+        pitch = midi.pitch
+        scale = midi.timeout / self.speed
+        ispressed = midi.ispressed
 
         #parameters
-        size = sizeratio * int(min(self.resolution)) * scale
+        size = midi.size * int(min(self.resolution)) * scale
 
         if dEBUGMODE: print(str(pitch))
         note = pitch % 12
@@ -161,12 +161,10 @@ class MidiClock:
         pygame.draw.circle(screen, color, (x, y), size)
 
         #else: print("Error: Expected MidiObject")
-    def DrawChord(self, midiobjects, mode): #draws a polygon given multiple midi note inputs
+    def DrawChord(self, midi, mode): #draws a polygon given multiple midi note inputs
         a = 0
-        #coords = []
-
         try: 
-            a = len(midiobjects)
+            a = len(midi)
             if a <= 1:
                 print("Error: List too short.")
         except:
@@ -176,14 +174,10 @@ class MidiClock:
         #    coords.append(midiobjects[i].GetCoords())    ##NEED TO BUILD GETCOORDS()
         
 #midi queue methods
-    def Refresh(self): #purges the queue, resets the display, redraws all objects 
-        for i in range(len(self.activemidi)-1, -1, -1): #iterates in reverse
-            if not self.activemidi[i][2]: self.activemidi[i][1] -= interval
-            if self.activemidi[i][1] <= 0: #checks if midi timeout has reached 0
-                self.activemidi.pop(i) #removes expired midi
-            else:
-                if dEBUGMODE: print(str(self.activemidi[i]))
-                self.Draw(self.activemidi[i]) #draws the midi on the screen
+    def Refresh(self): #reduces the timeout of all midi in the queue and purges midi whose timeout is 0
+        for i in range(len(self.activemidi)-1, -1, -1): #iterates in reverse to avoid index issues with pop
+            if not self.activemidi[i].ispressed: self.activemidi[i].timeout -= interval #reduces timeout of all released midi by 1
+            if self.activemidi[i].timeout <= 0: self.activemidi.pop(i) #removes expired midi
     """def AddMidi(self, pitch, vel=100):  #OLD ADD MIDI FUNCTION FOR REFERENCE
         timeout = vel / 128 * self.speed
         midi = [pitch, timeout, True]
@@ -243,6 +237,27 @@ class Midi:
             return self.timeout
         return 0
 
+    """def Draw(self, offset=(0,0)):
+        #parameters
+        pitch = self.pitch
+        scale = self.timeout / self.speed
+
+        size = self.size * int(min(self.resolution)) * scale
+
+        if dEBUGMODE: print(str(pitch))
+        note = pitch % 12
+        octave = int((pitch - (pitch % 12))/12)
+
+        if self.ispressed: color = (255,255,255)
+        else: color = (0,0,255)
+
+        angle = math.radians(90 - note * 30)
+        distance = min(self.resolution) / 2 - octave * 50  #the distance is half the smaller of the two window dimensions
+        x = int(self.origin[0] + distance * math.cos(angle)) + offset[1]
+        y = int(self.origin[1] - distance * math.sin(angle)) + offset[2]
+        pygame.draw.circle(screen, color, (x, y), size)"""
+
+
 #/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
 #THE MAIN LOOP OF THE APPLICATION BELOW:|
 #\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
@@ -288,7 +303,10 @@ while running:
                 print(f"Error handling MIDI_RELEASE: {e}")
 
     midiclock.ResetDisplay() #resets the display
-    midiclock.Refresh() #refreshes the display
+    midiclock.Refresh() #refreshes the MIDI queue
+    midiclock.AnalyzeQueue() #analyzes the MIDI queue for chord patterns
+
+    for note in midiclock.activemidi: midiclock.Draw(note)
 
     pygame.display.flip()
     clock.tick(interval)
