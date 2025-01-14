@@ -184,14 +184,14 @@ class MidiClock:
             else:
                 if dEBUGMODE: print(str(self.activemidi[i]))
                 self.Draw(self.activemidi[i]) #draws the midi on the screen
-    def AddMidi(self, pitch, vel=100):
+    """def AddMidi(self, pitch, vel=100):  #OLD ADD MIDI FUNCTION FOR REFERENCE
         timeout = vel / 128 * self.speed
         midi = [pitch, timeout, True]
-        self.activemidi.append(midi) 
-    def DelMidi(self, pitch):
-        for i in range(len(self.activemidi)): #iterates thru queue and makes first matching midi component eligible for timeout
-            if self.activemidi[i][2] and self.activemidi[i][0] == pitch:
-                self.activemidi[i][2] = False
+        self.activemidi.append(midi) """
+    def ReleaseMidi(self, pitch):
+        for i in range(len(self.activemidi)): #iterates thru queue and marks first midi component of matching pitch as eligible for timing out. the Refresh() method is called, it will count down and be removed from the queue when midi.timeout = 0.
+            if self.activemidi[i].ispressed and self.activemidi[i][0] == pitch:
+                self.activemidi[i].ispressed = False
                 break
     def AnalyzeQueue(self): #analyzes the notes in the queue and returns any defined pattern matches
 
@@ -230,7 +230,7 @@ class MidiClock:
 
 class Midi:
     
-    def __init__(self, pitch, vel, size):
+    def __init__(self, pitch=0, vel=100, size=1):
         self.pitch = pitch
         self.vel = vel
         self.size = size
@@ -244,7 +244,7 @@ class Midi:
         return 0
 
 #/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
-#THE MAIN PART OF THE APPLICATION BELOW:|
+#THE MAIN LOOP OF THE APPLICATION BELOW:|
 #\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 
 #initializes pygame and sets screen resolution
@@ -275,15 +275,15 @@ while running:
             elif event.key == pygame.K_q:  # Q key
                 text_input()
 
-        # Handle custom MIDI events
-        elif event.type == MIDI_PRESS:
+        # Handle MIDI events
+        elif event.type == MIDI_PRESS: #when a MIDI key is pressed, adds a note to the queue
             try:
-                midiclock.AddMidi(event.pitch, event.vel)
+                midiclock.activemidi.append(Midi(event.pitch, event.vel))
             except Exception as e:
                 print(f"Error handling MIDI_PRESS: {e}")
-        elif event.type == MIDI_RELEASE:
+        elif event.type == MIDI_RELEASE: #when a MIDI key is released, the note starts to time out
             try:
-                midiclock.DelMidi(event.pitch)
+                midiclock.ReleaseMidi(event.pitch) #finds the first note of matching pitch in the queue and marks it for timeout
             except Exception as e:
                 print(f"Error handling MIDI_RELEASE: {e}")
 
